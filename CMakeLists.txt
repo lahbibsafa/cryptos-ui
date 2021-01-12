@@ -1,0 +1,35 @@
+cmake_minimum_required(VERSION 3.17)
+project(interface_cryptos_cloud C)
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake-modules)
+link_directories(/usr/local/lib/)
+set(OPENSSL_ROOT_DIR /usr/local/opt/openssl/)
+set(CMAKE_C_STANDARD 99)
+add_compile_options(-pedantic -O2)
+find_package(glfw3 3.2 REQUIRED)
+find_package(OpenGL REQUIRED)
+find_package(GLEW REQUIRED)
+find_package(OpenSSL REQUIRED)
+
+
+add_executable(interface_cryptos_cloud main.c)
+add_compile_options( -framework OpenGL)
+add_compile_options(-framework GLUT)
+include(FindUlfius)
+set(ULFIUS_MIN_VERSION "2.6")
+find_package(Ulfius ${ULFIUS_MIN_VERSION} REQUIRED)
+
+include_directories(${ULFIUS_INCLUDE_DIRS})
+
+
+target_link_libraries(interface_cryptos_cloud OpenGL::GL)
+target_link_libraries(interface_cryptos_cloud GLEW::GLEW)
+target_link_libraries(interface_cryptos_cloud glfw)
+target_link_libraries(interface_cryptos_cloud m)
+target_link_libraries(interface_cryptos_cloud GLU)
+target_link_libraries(interface_cryptos_cloud jansson)
+target_link_libraries(interface_cryptos_cloud ulfius)
+target_link_libraries(interface_cryptos_cloud orcania)
+target_link_libraries(interface_cryptos_cloud OpenSSL::Crypto)
+
+file(COPY ${CMAKE_SOURCE_DIR}/media/ DESTINATION ${CMAKE_BINARY_DIR}/media/)
+file(COPY ${CMAKE_SOURCE_DIR}/storage/ DESTINATION ${CMAKE_BINARY_DIR}/storage/)
