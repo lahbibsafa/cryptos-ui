@@ -6,27 +6,33 @@
  * @param body : body or normal text fonts (Robots fontsize: 14)
  */
 void createForm(struct nk_context ctx, struct nk_font title, struct nk_font body) {
-
-    //frame creation
-    static char username[256];
+    static char username[256]; //username text
     static int usernameLength;
-    static char password[256];
+    static char password[256]; //password text
     static int passwordLength;
 
+    /** fi the show login popup flag is active create our popup **/
     if (SHOW_LOGIN_POPUP){
+        //set the theme to THEME_RED
         set_style(&ctx, THEME_RED);
+        //create the popup with dimension 200x200 on the positition 150x275
         if (nk_popup_begin(&ctx, NK_POPUP_STATIC, "LOGIN", NK_WINDOW_CLOSABLE|NK_WINDOW_NO_SCROLLBAR|NK_WINDOW_MOVABLE,
                            nk_rect(150, 275, 200, 200))){
+            //create a static fragment 30 in height and 200px in width
             nk_layout_row_static(&ctx, 30, 200, 1);
-            nk_text_wrap(&ctx, POPUP_MESSAGE, strlen(POPUP_MESSAGE));
+            nk_text_wrap(&ctx, POPUP_MESSAGE, strlen(POPUP_MESSAGE)); //add the global POPUP_MESSAGE
             nk_layout_row_static(&ctx, 30, 200, 1);
+            //create the login button
             if (nk_button_label(&ctx, "Login")) {
-                SHOW_LOGIN_POPUP=0;
+                SHOW_LOGIN_POPUP=0; //when the user click on the login desactivate the show_login_popup flag (hide the popup) and close it
                 nk_popup_close(&ctx);
             }
             nk_popup_end(&ctx);
         }
     }
+    /**
+     * if the register popup flag is active do the same as the login popup
+     */
     if (SHOW_REGISTER_POPUP){
         set_style(&ctx, THEME_RED);
         if (nk_popup_begin(&ctx, NK_POPUP_STATIC, "Register", NK_WINDOW_CLOSABLE|NK_WINDOW_NO_SCROLLBAR|NK_WINDOW_MOVABLE,
@@ -41,13 +47,13 @@ void createForm(struct nk_context ctx, struct nk_font title, struct nk_font body
             nk_popup_end(&ctx);
         }
     }
-    set_style(&ctx, THEME_WHITE);
+    set_style(&ctx, THEME_WHITE); //change to white hteme
     if (nk_group_begin(&ctx, "form_input", NK_WINDOW_NO_SCROLLBAR)) { // column 2
         nk_layout_row_dynamic(&ctx, 30, 1);
         // nk_style_set_font(&ctx, &title.handle);
-        nk_label(&ctx, "Create Account", NK_TEXT_CENTERED);
-        nk_layout_row_static(&ctx, 500, 500, 1);
-        ctx.style.window.group_padding = nk_vec2(125,100);
+        nk_label(&ctx, "Create Account", NK_TEXT_CENTERED); //add a centered text as title (CREATE Account)
+        nk_layout_row_static(&ctx, 500, 500, 1); //add a group of component 500x500px
+        ctx.style.window.group_padding = nk_vec2(125,100);//Set the padding to 125 top and 100 left
 
         if (nk_group_begin(&ctx, "form_input", NK_WINDOW_NO_SCROLLBAR)) { // column 2
             nk_layout_row_static(&ctx, 30, 250, 1);
@@ -57,7 +63,7 @@ void createForm(struct nk_context ctx, struct nk_font title, struct nk_font body
             nk_edit_string(&ctx,NK_EDIT_FIELD, username, &usernameLength, 256, nk_filter_ascii);
             nk_layout_row_static(&ctx, 30, 250, 1);
 
-            nk_label(&ctx, "Password", NK_TEXT_ALIGN_CENTERED);
+            nk_label(&ctx, "Password", NK_TEXT_ALIGN_CENTERED); //create the custom password field (show typing as *)
             {
                 int i = 0;
                 int old_len = passwordLength;
@@ -71,15 +77,15 @@ void createForm(struct nk_context ctx, struct nk_font title, struct nk_font body
             nk_layout_row_static(&ctx, 30, 250, 1);
 
             if (nk_button_label(&ctx, "Login")) {
-
+                //if the user click the login button call the login function
                 if (login(username,password) != -1){
                     //success login
-                    glfwSetWindowSize(window, 1200, 750);
+                    glfwSetWindowSize(window, 1200, 750); //resize the window
                     glViewport(0, 0, 1000, 750);
-                    LOGGED_IN = 1;
+                    LOGGED_IN = 1; //mark the user as logged in
 
                 } else {
-                    SHOW_LOGIN_POPUP = 1;
+                    SHOW_LOGIN_POPUP = 1; //show login popup (error)
                 }
             }
             nk_layout_row_static(&ctx, 30, 250, 1);
@@ -130,7 +136,8 @@ void navigation(struct nk_context ctx, struct nk_font title ,struct nk_font body
 void draw_home(struct nk_context ctx, struct nk_font title, struct nk_font body, struct file_browser *browser, struct media *media){
     static char encryptionKey[256];
     static int encryptionKeyLength;
-    if (nk_group_begin(&ctx, "form_input", NK_WINDOW_NO_SCROLLBAR)) { // column 2
+    if (nk_group_begin(&ctx, "form_input", NK_WINDOW_NO_SCROLLBAR)) {
+        //if the show dialog message is activev show the upload/skip popup
         if (SHOW_DIALOG_MESSAGE) {
             if (nk_popup_begin(&ctx, NK_POPUP_STATIC, "Message", NK_WINDOW_CLOSABLE|NK_WINDOW_NO_SCROLLBAR|NK_WINDOW_MOVABLE,
                                nk_rect(150, 275, 200, 450))){
@@ -138,13 +145,15 @@ void draw_home(struct nk_context ctx, struct nk_font title, struct nk_font body,
                 nk_text_wrap(&ctx, POPUP_MESSAGE, strlen(POPUP_MESSAGE));
                 nk_layout_row_static(&ctx, 30, 200, 1);
                 if (nk_button_label(&ctx, "Upload File")) {
-                    char* encryptedFile = str_replace(browser->file, browser->directory, "./");
-                    sprintf(encryptedFile, "%s.encrypted", encryptedFile);
-                    upload(encryptedFile, str_replace(browser->file, browser->directory, ""));
-                    SHOW_DIALOG_MESSAGE = 0;
-                    POPUP_MESSAGE = "";
-                    nk_popup_close(&ctx);
+                    //if the useer click on upload file
+                    char* encryptedFile = str_replace(browser->file, browser->directory, "./"); //get the current file name
+                    sprintf(encryptedFile, "%s.encrypted", encryptedFile); //add the .encrypted extension to the filename
+                    upload(encryptedFile, str_replace(browser->file, browser->directory, "")); //uplaod the file to the server
+                    SHOW_DIALOG_MESSAGE = 0; //close the modal
+                    POPUP_MESSAGE = ""; //clear the moessage
+                    nk_popup_close(&ctx);//close the popup
                 }
+
                 if (nk_button_label(&ctx, "Skip Upload")) {
                     SHOW_DIALOG_MESSAGE = 0;
                     POPUP_MESSAGE = "";
@@ -153,6 +162,8 @@ void draw_home(struct nk_context ctx, struct nk_font title, struct nk_font body,
                 nk_popup_end(&ctx);
             }
         }
+
+        //show the enter your password modal if the user clicked on a file
         if (SHOW_ENCRYPT_DECRYPT_PASS) {
             if (nk_popup_begin(&ctx, NK_POPUP_STATIC, "Encrypt", NK_WINDOW_CLOSABLE|NK_WINDOW_NO_SCROLLBAR|NK_WINDOW_MOVABLE,
                                nk_rect(150, 275, 450, 450))){
@@ -174,7 +185,7 @@ void draw_home(struct nk_context ctx, struct nk_font title, struct nk_font body,
                     char* inputFile = browser->file;
                     char* encryptedFile = str_replace(browser->file, browser->directory, "./");
                     sprintf(encryptedFile, "%s.encrypted", encryptedFile);
-                    encrypt_file(inputFile, encryptedFile, encryptionKey);
+                    encrypt_file(inputFile, encryptedFile, encryptionKey);//encrypt the selected file when the user click on encrypt file
                     SHOW_DIALOG_MESSAGE = 1;
                     POPUP_MESSAGE = "Your file has been encrypted, do you want to upload it ?";
                     nk_popup_close(&ctx);
@@ -185,7 +196,10 @@ void draw_home(struct nk_context ctx, struct nk_font title, struct nk_font body,
         nk_layout_row_dynamic(&ctx, 30, 1);
         // nk_style_set_font(&ctx, &title.handle);
         nk_label(&ctx, "Home", NK_TEXT_CENTERED);
-        if (SHOW_FILE_MANAGER_HOME) {
+        if (SHOW_FILE_MANAGER_HOME) { //show the file management screen
+            /**
+             * this code was copied from the nuklear examples it render all the files and folders in the current working directory(starting by home)
+             */
            char *d = browser->directory;
            char *begin = d + 1;
            nk_layout_row_dynamic(&ctx, 25, 6);
@@ -225,11 +239,11 @@ void draw_home(struct nk_context ctx, struct nk_font title, struct nk_font body,
                                 struct nk_image *icon;
                                 size_t fileIndex = ((size_t)j - browser->dir_count);
                                 icon = media_icon_for_file(media,browser->files[fileIndex]);
-                                if (nk_button_image(&ctx, *icon)) {
+                                if (nk_button_image(&ctx, *icon)) {//if the user clicked on file
                                     strncpy(browser->file, browser->directory, MAX_PATH_LEN);
                                     n = strlen(browser->file);
                                     strncpy(browser->file + n, browser->files[fileIndex], MAX_PATH_LEN - n);
-                                    SHOW_ENCRYPT_DECRYPT_PASS = 1;
+                                    SHOW_ENCRYPT_DECRYPT_PASS = 1;//show the encyrpt decrypt modal (type yopur pass for encryption)
                                 }
                             }
                         }}
@@ -263,6 +277,7 @@ void draw_home(struct nk_context ctx, struct nk_font title, struct nk_font body,
 
     }
 }
+//ssame as the home
 void draw_encrypt(struct nk_context ctx, struct nk_font title, struct nk_font body, struct file_browser *browser, struct media *media){
     static char encryptionKey[256];
     static int encryptionKeyLength;
@@ -404,7 +419,7 @@ void draw_decrypt(struct nk_context ctx, struct nk_font title, struct nk_font bo
     static int encryptionKeyLength;
 
 
-    if (nk_group_begin(&ctx, "form_input", NK_WINDOW_NO_SCROLLBAR)) { // column 2
+    if (nk_group_begin(&ctx, "form_input", NK_WINDOW_NO_SCROLLBAR)) {
         if (SHOW_DIALOG_MESSAGE) {
             if (nk_popup_begin(&ctx, NK_POPUP_STATIC, "Message", NK_WINDOW_CLOSABLE|NK_WINDOW_NO_SCROLLBAR|NK_WINDOW_MOVABLE,
                                nk_rect(150, 275, 200, 450))){
@@ -427,6 +442,8 @@ void draw_decrypt(struct nk_context ctx, struct nk_font title, struct nk_font bo
                 nk_popup_end(&ctx);
             }
         }
+        //show enter yopur keyphrase to decrypt file
+
         if (SHOW_ENCRYPT_DECRYPT_PASS) {
             if (nk_popup_begin(&ctx, NK_POPUP_STATIC, "Decryption", NK_WINDOW_CLOSABLE|NK_WINDOW_NO_SCROLLBAR|NK_WINDOW_MOVABLE,
                                nk_rect(150, 275, 450, 450))){
@@ -444,11 +461,12 @@ void draw_decrypt(struct nk_context ctx, struct nk_font title, struct nk_font bo
                 }
                 nk_layout_row_static(&ctx, 30, 200, 1);
                 if (nk_button_label(&ctx, "Decrypt file")) {
-                    SHOW_ENCRYPT_DECRYPT_PASS=0;
-                    downloadFile(CURRENT_FILE);
-                    char* encryptedFile = malloc(1024);
+                    //if the user click on decrypt file
+                    SHOW_ENCRYPT_DECRYPT_PASS=0; //hide the popup
+                    downloadFile(CURRENT_FILE); //download the file (current file)
+                    char* encryptedFile = malloc(1024); //create decrypted file path
                     sprintf(encryptedFile, "./storage/%s", CURRENT_FILE);
-                    decrypt_file(CURRENT_FILE, encryptedFile, encryptionKey);
+                    decrypt_file(CURRENT_FILE, encryptedFile, encryptionKey); //decrypt file
 
                     nk_popup_close(&ctx);
                 }
@@ -460,11 +478,11 @@ void draw_decrypt(struct nk_context ctx, struct nk_font title, struct nk_font bo
         nk_label(&ctx, "Decryption", NK_TEXT_CENTERED);
         nk_layout_row_static(&ctx, 30, 150, 1);
         if (nk_button_label(&ctx, "Refresh Storage")) {
-            files = list_files();
+            files = list_files(); //if the user click on the refresh storage button, reload the remote files
         }
         nk_layout_row_dynamic(&ctx, 500, 1);
         nk_group_begin(&ctx, "Content", 0);
-        {
+        {//render the file list
             if (json_is_array(files))  {
                 for(int i = 0; i < json_array_size(files); i++){
                     json_t *data = json_array_get(files, i);
@@ -473,7 +491,7 @@ void draw_decrypt(struct nk_context ctx, struct nk_font title, struct nk_font bo
                         icon = &media->icons.default_file;
                         nk_layout_row_dynamic(&ctx, 60, 15);
                         if (nk_button_image(&ctx, *icon))
-                        {
+                        {//if the user select a file show the decyrpt modall and set the curretn file to the selected file
                             CURRENT_FILE = json_string_value(json_object_get(data, "filePath"));
                             SHOW_ENCRYPT_DECRYPT_PASS = 1;
                         }
